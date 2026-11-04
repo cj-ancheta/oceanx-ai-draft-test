@@ -1,22 +1,321 @@
 <!doctype html>
-<html lang="en-SG">
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#102f4f">
-  <meta name="description" content="A student prototype for reviewing OceanX challenge concepts, checking evidence and recording human decisions.">
-  <title>OceanX Challenge Review · Team 7 prototype</title>
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
-  <script src="data.js" defer></script>
-  <script src="domain.js" defer></script>
-  <script src="app.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OceanX Judging Record · Team 7 prototype</title>
+<style>
+  :root { --navy:#0C2746; --teal:#0E7C7B; --coral:#F36C49; --bg:#F4F7F7; --mint:#E8F3F4; --line:#D5DFE0; --slate:#566B80; --ink:#14231F; --pale:#FDE7E1; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 "Segoe UI", Calibri, Arial, sans-serif; }
+  header { background:var(--navy); color:#fff; padding:12px 22px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  header h1 { font:700 18px Arial, sans-serif; margin:0 12px 0 0; }
+  .tabs { display:flex; gap:6px; flex-wrap:wrap; }
+  .tab { background:transparent; color:#cfe3e6; border:1px solid #2c4b6b; border-radius:6px; padding:7px 12px; font:inherit; cursor:pointer; }
+  .tab.on { background:var(--teal); color:#fff; border-color:var(--teal); }
+  .reset { margin-left:auto; background:transparent; color:#cfe3e6; border:1px dashed #4a6b8b; border-radius:6px; padding:6px 10px; cursor:pointer; font:inherit; }
+  .note { background:var(--pale); color:var(--navy); padding:8px 22px; font-size:13.5px; border-bottom:1px solid #f3c5b8; }
+  main { padding:18px 22px 40px; max-width:1320px; margin:0 auto; }
+  .grid { display:grid; grid-template-columns: 420px 1fr; gap:18px; align-items:start; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:16px 18px; }
+  .eyebrow { color:var(--teal); font-weight:700; letter-spacing:.06em; font-size:12px; text-transform:uppercase; }
+  h2 { font:700 19px Arial, sans-serif; color:var(--navy); margin:4px 0 10px; }
+  h3 { font:700 15px Arial, sans-serif; color:var(--navy); margin:14px 0 6px; }
+  .muted { color:var(--slate); font-size:13px; }
+  .entry { display:flex; gap:10px; align-items:flex-start; border:1px solid var(--line); border-radius:9px; padding:10px 12px; margin:8px 0; background:#fff; cursor:pointer; width:100%; text-align:left; font:inherit; color:inherit; }
+  .entry:hover, .entry.sel { border-color:var(--teal); background:var(--mint); }
+  .rank { flex:0 0 34px; height:34px; border-radius:50%; background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; }
+  .entry .t { font-weight:700; color:var(--navy); }
+  .badge { display:inline-block; font-size:11.5px; padding:1px 8px; border-radius:10px; margin:3px 4px 0 0; background:var(--mint); color:var(--navy); }
+  .badge.warn { background:var(--pale); color:#a3401f; }
+  .badge.ok { background:#dff2ec; color:#0b5f4c; }
+  .ai { float:right; font-weight:700; color:var(--teal); }
+  .stmt { font-size:16px; line-height:1.6; background:var(--bg); border-radius:8px; padding:12px 14px; }
+  mark { padding:0 3px; border-radius:4px; }
+  mark.user { background:#cdeee9; } mark.core { background:#d9e4f5; } mark.outcome { background:#dcf3d7; } mark.format { background:#fbe0d6; }
+  .chips { margin:8px 0 2px; }
+  .chip { display:inline-block; margin:3px 6px 3px 0; padding:3px 9px; border-radius:12px; font-size:12.5px; border:1px solid var(--line); background:#fff; }
+  .chip b { color:var(--slate); font-weight:600; margin-right:4px; }
+  .chip.miss { border-color:var(--coral); background:var(--pale); }
+  table { border-collapse:collapse; width:100%; font-size:14px; }
+  th, td { border-bottom:1px solid var(--line); padding:7px 8px; text-align:left; vertical-align:top; }
+  th { color:var(--navy); font-size:12.5px; text-transform:uppercase; letter-spacing:.04em; }
+  .bar { height:8px; background:var(--mint); border-radius:4px; overflow:hidden; } .bar i { display:block; height:8px; background:var(--teal); }
+  .scale { display:flex; gap:3px; flex-wrap:wrap; }
+  .scale button { width:30px; height:30px; border:1px solid var(--line); background:#fff; border-radius:6px; cursor:pointer; font:inherit; }
+  .scale button.on { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .btn { background:var(--teal); color:#fff; border:0; border-radius:7px; padding:9px 14px; font:inherit; font-weight:700; cursor:pointer; }
+  .btn.ghost { background:#fff; color:var(--navy); border:1px solid var(--line); }
+  .btn.warn { background:var(--coral); color:var(--navy); }
+  .btn:disabled { opacity:.45; cursor:not-allowed; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+  input[type=text], textarea, select { width:100%; border:1px solid var(--line); border-radius:7px; padding:8px 10px; font:inherit; background:#fff; }
+  textarea { min-height:70px; }
+  .flag { color:#a3401f; font-weight:700; }
+  .hist li { margin:3px 0; font-size:13.5px; }
+  .steps li { margin:4px 0; }
+  .ok-t { color:#0b5f4c; } .bad-t { color:#a3401f; }
+  .modal { position:fixed; inset:0; background:rgba(12,39,70,.45); display:flex; align-items:center; justify-content:center; }
+  .modal .card { width:min(520px, 92vw); }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+</style>
 </head>
 <body>
-  <a class="skip-link" href="#main-content">Skip to main content</a>
-  <div id="app"><main class="empty-state"><h1>Opening Challenge Review</h1><p>Loading the demonstration round…</p></main></div>
-  <div id="modal-root"></div>
-  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="false"></div>
-  <noscript>This interactive prototype needs JavaScript. All demonstration data is bundled locally.</noscript>
+<header>
+  <h1>OceanX Judging Record</h1>
+  <div class="tabs" role="tablist">
+    <button class="tab" data-view="judge">Judge · Alex Chen</button>
+    <button class="tab" data-view="panel">Panel lead</button>
+    <button class="tab" data-view="entrant">Entrant</button>
+    <button class="tab" data-view="log">Change log</button>
+  </div>
+  <button class="reset" id="reset">Reset demo</button>
+</header>
+<div class="note">Team 7 prototype. The entries and judges are fictional. The AI scores are prepared examples, not a live AI. Changes stay in this browser.</div>
+<main id="app"></main>
+<div id="modal"></div>
+<script>
+'use strict';
+const CRIT = [['science','Scientific Integrity'],['audience','Audience'],['originality','Originality'],['feasibility','Feasibility'],['emotion','Emotional Impact'],['scale','Potential to Scale']];
+const JUDGES = { alex:{ name:'Alex Chen', field:'marine science' }, priya:{ name:'Priya Nair', field:'learning design' }, sam:{ name:'Sam Rivera', field:'media and hardware' } };
+const sc = a => Object.fromEntries(CRIT.map(([k], i) => [k, a[i]]));
+const ENTRIES = [
+  { id:'A01', title:'Simulator for fish light signals', team:'Lumen Lab', tags:['marine science','media and hardware'],
+    text:'How might we create an interactive light-matching simulator that decodes deep-sea fish photophore communication patterns into visual and audible syntax?',
+    hl:{ user:null, core:'deep-sea fish photophore communication patterns', outcome:null, format:'interactive light-matching simulator' },
+    ai:sc([7,6,8,6,7,7]), reason:'An original idea built on real bioluminescence. "Decodes" and "syntax" imply a proven fish language, and no learner is named.',
+    priya:sc([5,5,8,6,6,6]), sam:sc([6,5,7,5,6,6]) },
+  { id:'A02', title:'Projection room with glowing waves', team:'Tidewave', tags:['media and hardware','learning design'],
+    text:'How can an immersive projection-mapped environment simulate bioluminescent wave disturbance triggered by physical visitor movement?',
+    hl:{ user:'visitor', core:'bioluminescent wave disturbance', outcome:null, format:'immersive projection-mapped environment' },
+    ai:sc([8,8,6,6,9,6]), reason:'A clear cause and effect with strong emotional pull. It needs a physical venue and projection kit, which limits its reach.',
+    priya:sc([8,8,5,7,9,5]), sam:sc([7,8,6,5,8,6]) },
+  { id:'A03', title:'Gestures mapped to plankton flashes', team:'Flash Kinetics', tags:['media and hardware'],
+    text:'How might we design a generative audiovisual installation that maps visitor velocity and gesture to dynamic dinoflagellate flash frequencies?',
+    hl:{ user:'visitor', core:'dinoflagellate flash frequencies', outcome:null, format:'generative audiovisual installation' },
+    ai:sc([7,6,6,6,8,6]), reason:'Engaging and visual, but the wording is technical. It is unclear how gestures relate to real flash behaviour or what visitors learn.',
+    priya:sc([7,6,5,7,7,5]), sam:sc([6,7,6,6,7,5]) },
+  { id:'A04', title:'Mobile AR game on squid camouflage', team:'Shadow Squid', tags:['marine science','data and software'],
+    text:'How might a mobile AR game illustrate counterillumination camouflage mechanics used by midwater squid and hatchetfish against downwelling sunlight?',
+    hl:{ user:null, core:'counterillumination camouflage mechanics', outcome:null, format:'mobile AR game' },
+    ai:sc([9,7,8,8,7,9]), reason:'Specific, strong science in a mobile format that scales well. "Counterillumination" will lose general readers, and the game goal is missing.',
+    priya:sc([9,7,7,7,6,9]), sam:sc([8,7,7,8,6,8]) },
+  { id:'A05', title:'3D web explorer of the carbon pump', team:'Carbon Current', tags:['data and software','marine science'],
+    text:'How might we visualize the biological carbon pump and oceanic microbial carbon cycling through an accessible real-time 3D web data explorer?',
+    hl:{ user:null, core:'biological carbon pump', outcome:null, format:'real-time 3D web data explorer' },
+    ai:sc([9,6,6,5,6,9]), reason:'An important, data-rich topic in a scalable web format. Real-time data and two complex processes make it hard to build.',
+    priya:sc([10,6,5,6,5,9]), sam:sc([9,5,6,5,5,8]) },
+  { id:'A06', title:'Game on acidification and microbes', team:'Reef Rescue', tags:['learning design','marine science'],
+    text:'How can a gamified simulation educate youth on how ocean acidification and warming disrupt marine microbiome balance and nutrient flux?',
+    hl:{ user:'youth', core:'ocean acidification and warming', outcome:'educate youth', format:'gamified simulation' },
+    ai:sc([8,8,6,8,7,8]), reason:'A relevant climate topic with a named audience. Microbiome science is still uncertain, and many climate games already exist.',
+    priya:sc([7,8,5,8,7,8]), sam:sc([7,7,5,7,6,7]) },
+  { id:'A07', title:'Sandbox on currents carrying eDNA', team:'Drift Code', tags:['data and software','marine science'],
+    text:'How might we build an interactive digital sandbox modeling how ocean currents transport environmental DNA (eDNA) and allow species detection?',
+    hl:{ user:null, core:'ocean currents transport environmental DNA', outcome:null, format:'interactive digital sandbox' },
+    ai:sc([9,6,8,6,6,7]), reason:'Novel and timely science. The statement is technical and names no audience, and modelling how eDNA drifts is complex.',
+    priya:sc([8,6,8,6,5,7]), sam:sc([8,5,7,5,5,7]) },
+  { id:'A08', title:'VR walk through thermocline life', team:'Deep Thermo', tags:['media and hardware'],
+    text:'How might an immersive VR walkthrough reveal microscopic symbiotic networks and nutrient gradients within ocean thermoclines?',
+    hl:{ user:null, core:'microscopic symbiotic networks', outcome:null, format:'immersive VR walkthrough' },
+    ai:sc([6,6,7,5,8,6]), reason:'Potentially moving, but "symbiotic networks" is vague and the science is loosely defined. VR headsets limit how many learners it reaches.',
+    priya:sc([5,5,6,5,7,5]), sam:sc([5,6,6,6,6,5]) },
+  { id:'A09', title:'Sound and touch at brine pools', team:'Brine Sense', tags:['media and hardware','marine science'],
+    text:'How can spatial audio and haptic feedback simulate the dense, toxic conditions of deep-sea hypersaline brine pools and their adapted microbial rims?',
+    hl:{ user:null, core:'hypersaline brine pools', outcome:null, format:'spatial audio and haptic feedback' },
+    ai:sc([8,7,9,5,9,5]), reason:'A highly original sensory idea with strong impact. The learning outcome is not stated, and the equipment it needs is unclear.',
+    priya:sc([8,6,10,5,8,4]), sam:sc([8,6,9,2,8,4]) },
+  { id:'A10', title:'Story game through vent food webs', team:'Vent Quest', tags:['learning design','media and hardware'],
+    text:'How might an atmospheric narrative adventure guide players through chemosynthetic hydrothermal vent food webs under pitch-black volcanic conditions?',
+    hl:{ user:'players', core:'chemosynthetic hydrothermal vent food webs', outcome:null, format:'atmospheric narrative adventure' },
+    ai:sc([9,8,7,7,9,8]), reason:'Clear, accurate science with a strong story and wide reach as a game. The audience and the length of play are not defined.',
+    priya:sc([9,9,6,7,10,8]), sam:sc([8,8,6,7,5,7]) },
+];
+const KEY = 'oceanx-ranking-demo-v1';
+const avg = o => CRIT.reduce((t, [k]) => t + o[k], 0) / CRIT.length;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const now = () => new Date().toLocaleString('en-SG', { dateStyle:'medium', timeStyle:'short' });
+const aiOrder = () => ENTRIES.slice().sort((a, b) => avg(b.ai) - avg(a.ai) || a.id.localeCompare(b.id)).map(e => e.id);
+function fresh() {
+  const scores = {};
+  ENTRIES.forEach(e => { scores[e.id] = { priya:e.priya, sam:e.sam }; });
+  return { view:'judge', sel:null, showAll:false, order:aiOrder(), scores, draft:{}, decisions:{}, extra:[],
+    log:[{ when:'Round setup', who:'AI (prepared example)', what:'Scored and ranked all 10 entries on the six criteria.' }], wiz:{ who:'', what:'', when:'', impact:'', text:'' } };
+}
+let S; try { S = JSON.parse(localStorage.getItem(KEY)) || fresh(); } catch (e) { S = fresh(); }
+const save = () => localStorage.setItem(KEY, JSON.stringify(S));
+const byId = id => ENTRIES.find(e => e.id === id);
+const assignedToAlex = e => e.tags.includes(JUDGES.alex.field);
+
+// ---------- normalisation and dispute flags (feature 1) ----------
+function judgeStats() {
+  const st = {};
+  for (const j of Object.keys(JUDGES)) {
+    const vals = [];
+    for (const id of Object.keys(S.scores)) { const s = S.scores[id][j]; if (s) CRIT.forEach(([k]) => vals.push(s[k])); }
+    if (vals.length < 12) { st[j] = null; continue; }
+    const m = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const sd = Math.sqrt(vals.reduce((a, b) => a + (b - m) ** 2, 0) / vals.length) || 1;
+    st[j] = { m, sd };
+  }
+  return st;
+}
+function flagsFor(id, st) {
+  const out = [], s = S.scores[id] || {};
+  const js = Object.keys(JUDGES).filter(j => s[j] && st[j]);
+  for (const [k, label] of CRIT) for (let a = 0; a < js.length; a++) for (let b = a + 1; b < js.length; b++) {
+    const za = (s[js[a]][k] - st[js[a]].m) / st[js[a]].sd, zb = (s[js[b]][k] - st[js[b]].m) / st[js[b]].sd;
+    if (Math.abs(za - zb) > 2) out.push(`${label}: ${JUDGES[js[a]].name} ${s[js[a]][k]} and ${JUDGES[js[b]].name} ${s[js[b]][k]}`);
+  }
+  return out;
+}
+function normAvg(id, st) {
+  const s = S.scores[id] || {}, zs = [];
+  for (const j of Object.keys(JUDGES)) if (s[j] && st[j]) zs.push(CRIT.reduce((t, [k]) => t + (s[j][k] - st[j].m) / st[j].sd, 0) / CRIT.length);
+  return zs.length ? zs.reduce((a, b) => a + b, 0) / zs.length : null;
+}
+
+// ---------- highlighter (feature 3) ----------
+function highlight(e) {
+  let t = esc(e.text);
+  for (const [cls, term] of Object.entries(e.hl)) if (term) t = t.replace(esc(term), `<mark class="${cls}">${esc(term)}</mark>`);
+  return t;
+}
+function chips(e) {
+  const c = (label, v) => `<span class="chip ${v ? '' : 'miss'}"><b>${label}</b>${v ? esc(v) : 'Not stated'}</span>`;
+  return `<div class="chips">${c('Target user', e.hl.user)}${c('Core problem', e.hl.core)}${c('Measurable outcome', e.hl.outcome)}${c('Format', e.hl.format)}</div>`;
+}
+
+// ---------- views ----------
+const app = document.getElementById('app');
+function render() {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
+  ({ judge:judgeView, panel:panelView, entrant:entrantView, log:logView })[S.view]();
+  save();
+}
+function judgeView() {
+  const list = S.order.map(byId).filter(e => S.showAll || assignedToAlex(e));
+  if (!S.sel || !list.find(e => e.id === S.sel)) S.sel = list[0] && list[0].id;
+  const pos = id => S.order.indexOf(id) + 1;
+  app.innerHTML = `<div class="grid">
+    <section class="card"><div class="eyebrow">Ranked by AI · judges decide</div><h2>Your entries</h2>
+      <p class="muted">You see entries that match your expertise in ${esc(JUDGES.alex.field)}, in the AI's ranked order. Read the top entries first.</p>
+      <label class="muted"><input type="checkbox" id="all" ${S.showAll ? 'checked' : ''}> Show all entries</label>
+      ${list.map(e => { const mine = S.scores[e.id] && S.scores[e.id].alex; return `<button class="entry ${e.id === S.sel ? 'sel' : ''}" data-id="${e.id}">
+        <span class="rank">${pos(e.id)}</span><span style="flex:1"><span class="ai">AI ${avg(e.ai).toFixed(1)}</span><span class="t">${esc(e.title)}</span><br>
+        <span class="muted">${esc(e.team)} · ${e.id}</span><br>
+        ${assignedToAlex(e) ? `<span class="badge">Matched: ${esc(JUDGES.alex.field)}</span>` : '<span class="badge">Outside your field</span>'}
+        ${!e.hl.user ? '<span class="badge warn">No target user</span>' : ''}${mine ? '<span class="badge ok">You scored this</span>' : ''}</span></button>`; }).join('')}
+      ${S.extra.map(x => `<div class="entry"><span class="rank">·</span><span><span class="t">${esc(x.title)}</span><br><span class="muted">New entry · AI score pending (no live AI in this prototype)</span></span></div>`).join('')}
+    </section>
+    <section class="card" id="rec">${S.sel ? record(byId(S.sel)) : ''}</section></div>`;
+  document.getElementById('all').onchange = ev => { S.showAll = ev.target.checked; render(); };
+  app.querySelectorAll('.entry[data-id]').forEach(b => b.onclick = () => { S.sel = b.dataset.id; render(); });
+  wireRecord();
+}
+function record(e) {
+  const mine = (S.scores[e.id] && S.scores[e.id].alex) || null;
+  const d = S.draft[e.id] || (S.draft[e.id] = mine ? { ...mine } : {});
+  const done = CRIT.every(([k]) => d[k]);
+  return `<div class="eyebrow">One record per entry · ${e.id} · rank ${S.order.indexOf(e.id) + 1} of ${S.order.length}</div>
+    <h2>${esc(e.title)}</h2><div class="muted">${esc(e.team)} · tags: ${e.tags.map(esc).join(', ')}</div>
+    <h3>The entry, with key terms highlighted</h3><div class="stmt">${highlight(e)}</div>${chips(e)}
+    <h3>AI scores and reason <span class="muted">(prepared example)</span></h3>
+    <table>${CRIT.map(([k, l]) => `<tr><td style="width:38%">${l}</td><td style="width:45%"><div class="bar"><i style="width:${e.ai[k] * 10}%"></i></div></td><td><b>${e.ai[k]}</b>/10</td></tr>`).join('')}
+      <tr><td><b>AI average</b></td><td></td><td><b>${avg(e.ai).toFixed(1)}</b></td></tr></table>
+    <p class="stmt" style="font-size:14.5px;margin-top:8px"><b>AI reason:</b> ${esc(e.reason)}</p>
+    <h3>Your scores</h3><p class="muted">You decide. Score each criterion from 1 to 10. The AI's scores do not count towards the decision.</p>
+    ${CRIT.map(([k, l]) => `<div style="margin:6px 0"><div class="muted">${l}</div><div class="scale">${[1,2,3,4,5,6,7,8,9,10].map(n => `<button data-k="${k}" data-n="${n}" class="${d[k] === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>`).join('')}
+    <div class="row"><button class="btn" id="saveScores" ${done ? '' : 'disabled'}>${mine ? 'Update my scores' : 'Save my scores'}</button><span class="muted">${done ? 'All six scored.' : CRIT.filter(([k]) => d[k]).length + ' of 6 scored.'}</span></div>
+    <h3>Move this entry in the ranked list</h3><p class="muted">You can override the AI's order. Every move needs a one-line reason, and the change log keeps it.</p>
+    <div class="row"><button class="btn ghost" id="up">Move up</button><button class="btn ghost" id="down">Move down</button></div>
+    <h3>Record history</h3><ul class="hist">${S.log.filter(l => !l.id || l.id === e.id).slice(-6).map(l => `<li><b>${esc(l.who)}</b> · ${esc(l.when)}: ${esc(l.what)}</li>`).join('')}</ul>`;
+}
+function wireRecord() {
+  const e = byId(S.sel); if (!e) return;
+  app.querySelectorAll('.scale button').forEach(b => b.onclick = () => { S.draft[e.id][b.dataset.k] = Number(b.dataset.n); render(); });
+  const sv = document.getElementById('saveScores');
+  if (sv) sv.onclick = () => {
+    S.scores[e.id] = S.scores[e.id] || {}; S.scores[e.id].alex = { ...S.draft[e.id] };
+    S.log.push({ id:e.id, when:now(), who:JUDGES.alex.name, what:`Saved scores for ${e.id}, average ${avg(S.draft[e.id]).toFixed(1)}.` });
+    render();
+  };
+  const move = dir => ask(`Why move ${e.title} ${dir}?`, 'For example: a bold idea that the AI ranked too low.', reason => {
+    const i = S.order.indexOf(e.id), j = dir === 'up' ? i - 1 : i + 1;
+    if (j < 0 || j >= S.order.length) return;
+    [S.order[i], S.order[j]] = [S.order[j], S.order[i]];
+    S.log.push({ id:e.id, when:now(), who:JUDGES.alex.name, what:`Moved ${e.id} ${dir} to rank ${j + 1}. Reason: ${reason}` });
+    render();
+  });
+  document.getElementById('up').onclick = () => move('up');
+  document.getElementById('down').onclick = () => move('down');
+}
+function panelView() {
+  const st = judgeStats();
+  const rows = S.order.map(byId).map((e, i) => {
+    const s = S.scores[e.id] || {}, js = Object.keys(JUDGES).filter(j => s[j]);
+    const raw = js.length ? js.reduce((t, j) => t + avg(s[j]), 0) / js.length : null;
+    const nz = normAvg(e.id, st), fl = flagsFor(e.id, st), dec = S.decisions[e.id];
+    return `<tr><td><b>${i + 1}</b></td><td><b>${esc(e.title)}</b><br><span class="muted">${e.id} · ${esc(e.team)}</span></td>
+      <td>${avg(e.ai).toFixed(1)}</td><td>${raw ? raw.toFixed(1) : '–'}<br><span class="muted">${js.length} judge${js.length === 1 ? '' : 's'}</span></td>
+      <td>${nz === null ? '–' : (nz >= 0 ? '+' : '') + nz.toFixed(2)}</td>
+      <td>${fl.length ? `<span class="flag">Discuss</span><br><span class="muted">${fl.map(esc).join('<br>')}</span>` : '<span class="muted">None</span>'}</td>
+      <td>${dec ? `<b>${dec.outcome}</b><br><span class="muted">${esc(dec.reason)}</span>` : `<button class="btn ghost" data-dec="${e.id}" data-o="Shortlisted">Shortlist</button> <button class="btn ghost" data-dec="${e.id}" data-o="Not selected">Not selected</button>`}</td></tr>`;
+  }).join('');
+  const nflag = S.order.filter(id => flagsFor(id, st).length).length, nshort = Object.values(S.decisions).filter(d => d.outcome === 'Shortlisted').length;
+  app.innerHTML = `<section class="card"><div class="eyebrow">Panel lead · Taylor Brooks</div><h2>The panel decides every entry</h2>
+    <p class="muted">The AI rank orders the list. The panel decides from the judges' scores. Normalised scores remove each judge's habit of scoring harder or softer. "Discuss" appears when two judges differ by more than two standard deviations on one criterion.</p>
+    <p><b>${nflag}</b> entries need discussion · <b>${nshort}</b> shortlisted so far</p>
+    <table><thead><tr><th>Rank</th><th>Entry</th><th>AI score</th><th>Judges' average</th><th>Normalised</th><th>Dispute flag</th><th>Decision</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="row"><button class="btn" id="export">Download the full record (JSON)</button><span class="muted">Every score, reason, move and decision, in one file.</span></div></section>`;
+  app.querySelectorAll('[data-dec]').forEach(b => b.onclick = () => ask(`Reason for "${b.dataset.o}"`, 'For example: strong science, but the audience must be defined.', reason => {
+    S.decisions[b.dataset.dec] = { outcome:b.dataset.o, reason };
+    S.log.push({ id:b.dataset.dec, when:now(), who:'Taylor Brooks (panel lead)', what:`${b.dataset.o} ${b.dataset.dec}. Reason: ${reason}` });
+    render();
+  }));
+  document.getElementById('export').onclick = () => {
+    const blob = new Blob([JSON.stringify({ exported:new Date().toISOString(), note:'Fictional demo data. AI scores are prepared examples.', order:S.order, entries:ENTRIES.map(e => ({ id:e.id, title:e.title, ai:e.ai, reason:e.reason, judges:S.scores[e.id] || {}, decision:S.decisions[e.id] || null })), log:S.log }, null, 2)], { type:'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'oceanx-judging-record.json'; a.click();
+  };
+}
+function entrantView() {
+  const w = S.wiz, bad = (w.text.match(/\b(app|apps|AI|dashboard|platform|VR)\b/gi) || []);
+  const checks = [['Names the user', !!w.who.trim()], ['States the pain point', !!w.what.trim()], ['Says when or where it happens', !!w.when.trim()], ['States a measurable outcome', !!w.impact.trim()],
+    ['Fits in 200 characters', w.text.length > 0 && w.text.length <= 200], ['No solution words such as app, AI or dashboard', w.text.length > 0 && !bad.length]];
+  const ok = checks.every(c => c[1]);
+  app.innerHTML = `<div class="grid"><section class="card"><div class="eyebrow">Entrant view · problem statement check</div><h2>Answer four questions first</h2>
+      ${[['who','Who is the user?','For example: secondary school students'],['what','What is the pain point or gap?','For example: they cannot picture how deep-sea animals use light'],['when','When or where does it happen?','For example: during biology lessons on ocean ecosystems'],['impact','What measurable outcome do you want?','For example: students can explain two ways animals use light']]
+        .map(([k, l, ph]) => `<label class="muted">${l}<input type="text" data-w="${k}" value="${esc(w[k])}" placeholder="${esc(ph)}"></label><div style="height:8px"></div>`).join('')}
+      <button class="btn ghost" id="tpl">Fill a template draft</button></section>
+    <section class="card"><h2>Your problem statement</h2><textarea data-w="text" maxlength="260" placeholder="How might we...">${esc(w.text)}</textarea>
+      <div class="muted">${w.text.length} of 200 characters</div>
+      <h3>Checks</h3><ul class="steps">${checks.map(([l, v]) => `<li class="${v ? 'ok-t' : 'bad-t'}">${v ? '✓' : '✗'} ${l}</li>`).join('')}</ul>
+      ${bad.length ? `<p class="bad-t">Solution words found: ${[...new Set(bad.map(b => b.toLowerCase()))].map(esc).join(', ')}. Describe the problem, not the tool.</p>` : ''}
+      <div class="row"><button class="btn" id="submit" ${ok ? '' : 'disabled'}>Submit the entry</button></div></section></div>`;
+  app.querySelectorAll('[data-w]').forEach(i => i.oninput = () => { S.wiz[i.dataset.w] = i.value; save(); const p = i.selectionStart, k = i.dataset.w; entrantView(); const el = app.querySelector(`[data-w="${k}"]`); el.focus(); el.setSelectionRange(p, p); });
+  document.getElementById('tpl').onclick = () => { S.wiz.text = `How might we help ${w.who || '[user]'} who ${w.what || '[pain point]'} ${w.when || '[when or where]'}, so that ${w.impact || '[outcome]'}?`; render(); };
+  document.getElementById('submit').onclick = () => {
+    S.extra.push({ title:w.text.slice(0, 60) + (w.text.length > 60 ? '…' : '') });
+    S.log.push({ when:now(), who:'Entrant', what:'Submitted a problem statement that passed all six checks.' });
+    S.wiz = { who:'', what:'', when:'', impact:'', text:'' }; S.view = 'judge'; render();
+  };
+}
+function logView() {
+  app.innerHTML = `<section class="card"><div class="eyebrow">Governance</div><h2>Every change is logged with a reason</h2>
+    <table><thead><tr><th>When</th><th>Who</th><th>What happened</th></tr></thead><tbody>${S.log.slice().reverse().map(l => `<tr><td>${esc(l.when)}</td><td>${esc(l.who)}</td><td>${esc(l.what)}</td></tr>`).join('')}</tbody></table></section>`;
+}
+function ask(title, ph, cb) {
+  const m = document.getElementById('modal');
+  m.innerHTML = `<div class="modal"><div class="card"><h2>${esc(title)}</h2><textarea id="why" placeholder="${esc(ph)}"></textarea>
+    <div class="row"><button class="btn" id="ok" disabled>Save</button><button class="btn ghost" id="cancel">Cancel</button></div></div></div>`;
+  const t = document.getElementById('why'), ok = document.getElementById('ok');
+  t.focus(); t.oninput = () => { ok.disabled = !t.value.trim(); };
+  ok.onclick = () => { const v = t.value.trim(); m.innerHTML = ''; cb(v); };
+  document.getElementById('cancel').onclick = () => { m.innerHTML = ''; };
+}
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => { S.view = b.dataset.view; render(); });
+document.getElementById('reset').onclick = () => { if (confirm('Reset the demo to its starting state?')) { S = fresh(); render(); } };
+render();
+</script>
 </body>
 </html>
