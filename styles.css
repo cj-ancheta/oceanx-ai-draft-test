@@ -965,3 +965,5 @@ summary:focus-visible { outline: 3px solid #188dba; outline-offset: 3px; border-
   .review-grid > *, .decision-layout > * { margin-bottom: 18px; }
   a { color: inherit; }
 }
+
+.ai-draft-note { background: #E8F3F4; border-color: #0E7C7B; color: #0C2746; font-size: 13px; margin: 6px 0 10px; }

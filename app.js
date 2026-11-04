@@ -3,7 +3,7 @@
   'use strict';
   const DATA = globalThis.OX_DATA;
   const D = globalThis.OX_DOMAIN;
-  const STORAGE = 'oceanx-review-demo-v1';
+  const STORAGE = 'oceanx-review-demo-final';
   const root = document.getElementById('app');
   const modalRoot = document.getElementById('modal-root');
   if (!DATA || !D) {
@@ -129,11 +129,19 @@
       return `<details class="issue-disclosure ${g.critical&&!resolved?'critical':''}" ${g.critical&&!resolved?'open':''}><summary><span>${esc(g.title)}</span>${badge(resolved?'Resolved':g.critical?'Needs resolution':'Follow-up',resolved?'teal':g.critical?'amber':'gray')}</summary><div class="disclosure-body"><p>${esc(g.detail)}</p>${resolved?`<p class="form-note">${esc(resolution.rationale)}</p>`:''}<div class="inline-actions">${!panel?`<button class="source-link" data-action="source" data-source="${esc(g.sourceId)}">View source</button>`:''}${isLead()&&!final(entry)?`<button class="link-button" data-action="resolve-gap" data-gap="${esc(g.id)}">${resolved?'Review resolution':'Resolve issue'}</button>`:''}</div></div></details>`;
     }).join('');
   }
+  // Prepared AI draft of the reason. It follows the judge's own six scores and the entry's recorded issue. No live AI.
+  function aiDraft(entry, scores) {
+    const rated = DATA.criteria.map(c => ({ label: c.label, v: scores[c.id] }));
+    const best = rated.reduce((a, b) => (b.v > a.v ? b : a)), worst = rated.reduce((a, b) => (b.v < a.v ? b : a));
+    const gap = (entry.gaps || [])[0], q = (entry.questions || [])[0];
+    const lead = best.v === worst.v ? `${entry.title} scores ${best.v}/5 on all six criteria.` : `${entry.title} is strongest on ${best.label} (${best.v}/5) and weakest on ${worst.label} (${worst.v}/5).`;
+    return lead + (gap ? ` Open issue: ${gap.title}.` : '') + (q ? ` Feedback for the team: ${q.text}` : '');
+  }
   function reviewForm(entry) {
     const draft=draftFor(entry),own=entry.reviews[state.currentUser];
     return `<form data-form="review" novalidate><p class="form-note">Rate the concept. A finished build is not required.</p>
       ${DATA.criteria.map(c=>`<fieldset class="criterion"><legend class="criterion-label">${esc(c.label)}</legend><div class="rating-scale" role="group" aria-label="${esc(c.label)} rating">${[1,2,3,4,5].map(n=>`<button type="button" data-action="rate" data-criterion="${c.id}" data-rating="${n}" aria-label="${esc(c.label)}: ${n} out of 5" aria-pressed="${draft.scores[c.id]===n}">${n}</button>`).join('')}</div><div class="criterion-tools"><button type="button" class="rating-na" data-action="rate" data-criterion="${c.id}" data-rating="none" aria-pressed="${draft.scores[c.id]==null}">Not enough evidence</button><details class="rating-guide"><summary>Rating guide</summary><p>${esc(c.question)}</p><p>1: ${esc(c.anchors?.[1] || 'Weak support')}<br>3: ${esc(c.anchors?.[3] || 'Credible concept, some gaps')}<br>5: ${esc(c.anchors?.[5] || 'Strong support for this stage')}</p></details></div></fieldset>`).join('')}
-      <div class="field"><label class="field-label" for="review-rationale">Reason for your scores <span aria-hidden="true">*</span></label><textarea id="review-rationale" name="rationale" class="text-area" rows="3" placeholder="What supports your scores? What remains uncertain?">${esc(draft.rationale)}</textarea></div>
+      ${draft.aiDrafted ? '<p class="notice ai-draft-note">AI draft, written after your six scores. It is a prepared example, not a live AI. Edit anything you disagree with before you save.</p>' : '<p class="form-note">An AI draft of your reason appears after you rate all six criteria.</p>'}<div class="field"><label class="field-label" for="review-rationale">Reason for your scores and feedback for the team <span aria-hidden="true">*</span></label><textarea id="review-rationale" name="rationale" class="text-area" rows="3" placeholder="What supports your scores? What remains uncertain?">${esc(draft.rationale)}</textarea></div>
       <p class="form-note" id="review-progress">${DATA.criteria.filter(c=>draft.scores[c.id]!=null).length} of 6 criteria rated.</p><div id="review-error" class="error-text" role="alert" tabindex="-1"></div><div class="sticky-actions"><span class="save-status" id="draft-status">Saved in this browser</span><button type="submit" class="button primary">${icon('check',16)} ${own?.submitted?'Update review':'Save review'}</button></div></form>`;
   }
   function reviewView() {
@@ -209,7 +217,7 @@
       title=type==='method'?'Scoring rules':'Help and demo settings';
       const rules=`<p>OceanX provides the six criterion names. Team 7 proposes the rating anchors and decision rules used here.</p><ol><li>Each entry needs two assigned reviewers without conflicts.</li><li>Each reviewer rates all six criteria and explains their scores.</li><li>The comparison averages these ratings with equal weight. Missing ratings do not count as zero. Equal scores share a rank.</li><li>The panel must discuss a difference of three or more points on any criterion.</li><li>Shortlisting requires complete reviews and resolved critical issues.</li><li>Shortlist and Clarify need an owner, next action and checkpoint.</li></ol><p>The panel makes the decision. A high score does not resolve missing evidence.</p>`;
       body=type==='method'?rules:`<p>This student prototype uses fictional entries and reviewers. Its summaries are prepared examples. No live AI is connected.</p>
-        <details class="about-options" open><summary>Try one complete review</summary><div class="disclosure-body"><p>Start with Luma. Check its sources and save your assessment. Then open the panel to record a decision and next step.</p><p>Reef Resonance contains a deliberately misleading summary. Compare its pilot claim with the original source.</p></div></details>
+        <details class="about-options" open><summary>Try one complete review</summary><div class="disclosure-body"><p>Start with Luma. Read its sources and rate all six criteria. An AI draft of your reason then appears. Edit it and save your review. Then open the panel to compare entries and record a decision.</p><p>Reef Resonance contains a deliberately misleading summary. Compare its pilot claim with the original source.</p></div></details>
         <details class="about-options"><summary>What works here?</summary><div class="disclosure-body"><p>You can review sources, correct summaries and save independent assessments. The panel can change assignments, resolve issues and record a decision.</p><p>The handover download includes the next action. It does not send anything to another person.</p></div></details>
         <details class="about-options"><summary>Scoring rules</summary><div class="disclosure-body">${rules}</div></details>
         <details class="about-options"><summary>Demo limits and storage</summary><div class="disclosure-body"><p>Changes stay in this browser. Demo roles do not provide account security. The local history is not a secure audit log.</p><p>No video, upload service or notifications are connected. The prototype cannot establish the quality of an immersive experience.</p><p>User benefit and AI accuracy have not been tested. Hiding the summary also hides suggested questions. Sources and issue flags remain visible.</p></div></details>
@@ -286,7 +294,12 @@
       const value=button.dataset.rating==='none'?null:Number(button.dataset.rating);draftFor(entry).scores[button.dataset.criterion]=value;persist();
       const fieldset=button.closest('.criterion');fieldset.querySelectorAll('[data-action="rate"]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.rating===button.dataset.rating)));
       document.getElementById('draft-status').textContent='Saved in this browser';
-      document.getElementById('review-progress').textContent=DATA.criteria.filter(c=>draftFor(entry).scores[c.id]!=null).length+' of 6 criteria rated.';return;
+      const d=draftFor(entry);
+      if(DATA.criteria.every(c=>d.scores[c.id]!=null)&&!d.aiDrafted&&!String(d.rationale||'').trim()){
+        d.rationale=aiDraft(entry,d.scores);d.aiDrafted=true;persist();addAudit('AI draft added',entry.id,'A prepared AI draft of the reason appeared after all six scores.');
+        render();document.getElementById('review-rationale')?.focus();toast('AI draft added. Edit it before you save.');return;
+      }
+      document.getElementById('review-progress').textContent=DATA.criteria.filter(c=>d.scores[c.id]!=null).length+' of 6 criteria rated.';return;
     }
     if(action==='edit-claim'&&canAnnotate(entry)){openModal('edit-claim',{claimId:button.dataset.claim});return;}
     if(action==='question'&&canAnnotate(entry)){const id=button.dataset.question;entry.acceptedQuestions=entry.acceptedQuestions.includes(id)?entry.acceptedQuestions.filter(q=>q!==id):[...entry.acceptedQuestions,id];addAudit('Follow-up question changed',entry.id,'Selected questions for the handover.');render();document.querySelector('[data-question="'+id+'"]')?.focus();return;}

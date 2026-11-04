@@ -65,7 +65,7 @@
       return entry;
     });
     state.currentUser = 'j1';
-    state.mode = 'assisted';
+    state.mode = 'manual'; // the final design shows the entry in its own words first
     state.view = 'queue';
     state.selectedId = 'ox-014';
     state.decisions = {};
