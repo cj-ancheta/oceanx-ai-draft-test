@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OceanX judging test: writing feedback with and without AI drafts</title>
+<style>
+  :root { --navy:#0C2746; --teal:#0E7C7B; --coral:#F36C49; --bg:#F4F7F7; --line:#D5DFE0; --mint:#E8F3F4; --slate:#566B80; --ink:#14231F; --pale:#FDE7E1; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Calibri, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+  header { background: var(--navy); color: #fff; padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; }
+  header .brand { font-weight: 700; letter-spacing: .06em; font-size: 13px; }
+  header .progress { font-size: 14px; color: #8FD3CF; }
+  main { max-width: 1240px; margin: 24px auto 48px; padding: 0 24px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 22px 26px; }
+  .narrow { max-width: 780px; margin: 0 auto; }
+  h1 { font-size: 26px; color: var(--navy); margin: 0 0 10px; }
+  h2 { font-size: 18px; color: var(--navy); margin: 0 0 6px; }
+  p { line-height: 1.5; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; color: var(--teal); text-transform: uppercase; margin-bottom: 6px; }
+  .entry-text { font-size: 22px; line-height: 1.45; color: var(--navy); margin: 10px 0 14px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr); gap: 20px; align-items: start; }
+  .sticky { position: sticky; top: 16px; }
+  fieldset { border: 0; padding: 0; margin: 0 0 10px; }
+  legend { font-weight: 600; font-size: 14px; margin-bottom: 5px; padding: 0; }
+  .opts { display: flex; gap: 5px; }
+  .opts label, .pill { flex: 1; position: relative; }
+  .opts input, .pill input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .opts span, .pill span { display: block; text-align: center; border: 1px solid var(--line); border-radius: 6px; padding: 7px 0; cursor: pointer; font-size: 14px; background: #fff; }
+  .opts input:checked + span, .pill input:checked + span { background: var(--teal); color: #fff; border-color: var(--teal); }
+  .opts input:focus-visible + span, .pill input:focus-visible + span { outline: 2px solid var(--coral); outline-offset: 1px; }
+  .pills { display: flex; gap: 8px; max-width: 420px; }
+  .fl { display: block; font-weight: 600; font-size: 14px; margin: 10px 0; }
+  .fl input, .fl select, textarea { display: block; width: 100%; margin-top: 6px; font: inherit; font-size: 15px; font-weight: 400; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  textarea { min-height: 92px; resize: vertical; }
+  textarea:disabled { background: #EEF2F2; color: #8a97a3; }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; margin: 10px 0; }
+  .check input { margin-top: 4px; }
+  .draft-note { background: var(--pale); border: 1px solid var(--coral); border-radius: 8px; padding: 9px 12px; font-size: 14px; margin: 6px 0 4px; }
+  .wait-note { background: var(--mint); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; font-size: 14px; margin: 6px 0 4px; color: var(--slate); }
+  .btn { background: var(--teal); color: #fff; border: 0; border-radius: 8px; padding: 12px 20px; font-size: 16px; font-weight: 600; cursor: pointer; }
+  .btn:disabled { background: #9fb6b6; cursor: not-allowed; }
+  .btn.secondary { background: #fff; color: var(--teal); border: 1px solid var(--teal); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+  .error { color: #B0341A; font-weight: 600; }
+  .muted { color: var(--slate); font-size: 14px; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+  th, td { border-bottom: 1px solid var(--line); padding: 8px; text-align: left; font-size: 14px; }
+  ol.steps { padding-left: 20px; } ol.steps li { margin: 4px 0; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .sticky { position: static; } }
+</style>
+</head>
+<body>
+<header><div class="brand">OCEANX EDUCATION IMPACT CHALLENGE · JUDGING TEST</div><div class="progress" id="progress"></div></header>
+<main id="app"></main>
+<script>
+(() => {
+  'use strict';
+  const DATA = {"version":"2026-11-04b","criteria":[{"id":"science","label":"Scientific Integrity"},{"id":"audience","label":"Audience Engagement and Clarity"},{"id":"originality","label":"Originality"},{"id":"feasibility","label":"Feasibility"},{"id":"emotion","label":"Emotional Impact"},{"id":"scale","label":"Potential to Scale"}],"entries":{"A01":"How might we create an interactive light-matching simulator that decodes deep-sea fish photophore communication patterns into visual and audible syntax?","A02":"How can an immersive projection-mapped environment simulate bioluminescent wave disturbance triggered by physical visitor movement?","A03":"How might we design a generative audiovisual installation that maps visitor velocity and gesture to dynamic dinoflagellate flash frequencies?","A04":"How might a mobile AR game illustrate counterillumination camouflage mechanics used by midwater squid and hatchetfish against downwelling sunlight?","A05":"How might we visualize the biological carbon pump and oceanic microbial carbon cycling through an accessible real-time 3D web data explorer?","A06":"How can a gamified simulation educate youth on how ocean acidification and warming disrupt marine microbiome balance and nutrient flux?","A07":"How might we build an interactive digital sandbox modeling how ocean currents transport environmental DNA (eDNA) and allow species detection?","A08":"How might an immersive VR walkthrough reveal microscopic symbiotic networks and nutrient gradients within ocean thermoclines?","A09":"How can spatial audio and haptic feedback simulate the dense, toxic conditions of deep-sea hypersaline brine pools and their adapted microbial rims?","A10":"How might an atmospheric narrative adventure guide players through chemosynthetic hydrothermal vent food webs under pitch-black volcanic conditions?"},"drafts":{"A01":{"reason":"An original idea built on real bioluminescence. \"Decodes\" and \"syntax\" imply a proven fish language, and no learner is named.","feedback":"Name the audience and the learning goal. Call the light patterns signals rather than a language, and cite one documented species."},"A02":{"reason":"A clear cause and effect with strong emotional pull. It needs a physical venue and projection kit, which limits its reach.","feedback":"State what visitors should understand about bioluminescence. Consider a smaller pop-up or browser version for wider reach."},"A03":{"reason":"Engaging and visual, but the wording is technical. It is unclear how gestures relate to real flash behaviour or what visitors learn.","feedback":"Replace \"flash frequencies\" with plain words. Name the audience and one fact about dinoflagellates that visitors should take away."},"A04":{"reason":"Specific, strong science in a mobile format that scales well. \"Counterillumination\" will lose general readers, and the game goal is missing.","feedback":"Explain counterillumination in plain words. Name the age group and give players a goal, such as hiding from a predator."},"A05":{"reason":"An important, data-rich topic in a scalable web format. Real-time data and two complex processes make it hard to build.","feedback":"Focus on one process and one dataset. Say who uses the explorer and what question it helps them answer."},"A06":{"reason":"A relevant climate topic with a named audience. Microbiome science is still uncertain, and many climate games already exist.","feedback":"Pick one stressor and one ecosystem to keep the science accurate. Explain how this differs from other ocean climate games."},"A07":{"reason":"Novel and timely science. The statement is technical and names no audience, and modelling how eDNA drifts is complex.","feedback":"Define eDNA for a general reader. Name the learners and set them a task, such as finding where a species was detected."},"A08":{"reason":"Potentially moving, but \"symbiotic networks\" is vague and the science is loosely defined. VR headsets limit how many learners it reaches.","feedback":"Choose one documented partnership between organisms. Offer a browser version and say what learners should notice about the thermocline."},"A09":{"reason":"A highly original sensory idea with strong impact. Haptic and spatial audio kits are costly, and the learning outcome is not stated.","feedback":"State what learners should understand about life in brine pools. Offer a version that works with headphones only."},"A10":{"reason":"Clear, accurate science with a strong story and wide reach as a game. The audience and the length of play are not defined.","feedback":"Name the target age group and the session length. Add a moment where players explain how vent life gets its energy."}}};
+  const KEY = 'oceanx-test2-' + DATA.version;
+  const SETS = { X: ['A01', 'A02', 'A03', 'A04', 'A05'], Y: ['A06', 'A07', 'A08', 'A09', 'A10'] };
+  // Each set meets each condition, and each condition comes first, in half the groups.
+  const PLANS = { 1: [['X', 'scratch'], ['Y', 'draft']], 2: [['Y', 'draft'], ['X', 'scratch']],
+                  3: [['Y', 'scratch'], ['X', 'draft']], 4: [['X', 'draft'], ['Y', 'scratch']] };
+  const app = document.getElementById('app'), prog = document.getElementById('progress');
+  let S = null;
+  try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
+  const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* export still works */ } };
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const now = () => Date.now();
+  const iso = t => (t ? new Date(t).toISOString() : '');
+  const secs = ms => Math.round(ms / 100) / 10;
+
+  function lev(a, b) {
+    if (a === b) return 0;
+    const m = a.length, n = b.length;
+    if (!m) return n; if (!n) return m;
+    let prev = new Array(n + 1), cur = new Array(n + 1);
+    for (let j = 0; j <= n; j++) prev[j] = j;
+    for (let i = 1; i <= m; i++) {
+      cur[0] = i; const ai = a.charCodeAt(i - 1);
+      for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ai === b.charCodeAt(j - 1) ? 0 : 1));
+      [prev, cur] = [cur, prev];
+    }
+    return prev[n];
+  }
+  // Share of the draft that the judge changed: 0 means kept word for word, 1 means fully rewritten.
+  const changed = (draft, final) => { const d = draft.trim(), f = final.trim(), mx = Math.max(d.length, f.length); return mx ? Math.round(lev(d, f) / mx * 1000) / 1000 : 0; };
+
+  const plan = () => PLANS[S.group].map(([set, cond]) => ({ set, cond, entries: SETS[set] }));
+  const current = () => { const b = plan()[S.block]; return { set: b.set, cond: b.cond, entry: b.entries[S.idx] }; };
+  const allRated = () => DATA.criteria.every(k => S.cur && S.cur.scores[k.id]);
+
+  function render() {
+    if (!S) return setup();
+    const screens = { intro, block, pause, survey, done };
+    (screens[S.phase] || setup)();
+  }
+
+  function setup(err, keep = {}) {
+    prog.textContent = '';
+    const opt = g => `<option ${String(keep.group) === String(g) ? 'selected' : ''}>${g}</option>`;
+    app.innerHTML = `<section class="card narrow">
+      <div class="eyebrow">Facilitator · set up one participant</div>
+      <h1>Writing judges' feedback with and without AI drafts</h1>
+      <p class="muted">Use the order sheet in the kit. Each participant gets their own code and group.</p>
+      <form id="f" novalidate>
+        <label class="fl">Participant code<input name="code" maxlength="20" placeholder="P01" autocomplete="off" value="${esc(keep.code || '')}"></label>
+        <label class="fl">Group<select name="group"><option value="">Choose a group</option>${[1, 2, 3, 4].map(opt).join('')}</select></label>
+        <label class="fl">Participant's role<input name="role" maxlength="80" placeholder="For example, SMU master's student" autocomplete="off" value="${esc(keep.role || '')}"></label>
+        <label class="check"><input type="checkbox" name="fresh" ${keep.fresh ? 'checked' : ''}><span>I have not seen these ten entries or Team 7's earlier test.</span></label>
+        <label class="check"><input type="checkbox" name="ack" ${keep.ack ? 'checked' : ''}><span>I agree that my scores, text and timings are saved in this browser and shared with Team 7 for its course project.</span></label>
+        ${err ? `<p class="error">${esc(err)}</p>` : ''}
+        <div class="row"><button class="btn" type="submit">Continue</button></div>
+      </form></section>`;
+    document.getElementById('f').onsubmit = e => {
+      e.preventDefault();
+      const v = new FormData(e.target), code = String(v.get('code') || '').trim(), group = Number(v.get('group')), role = String(v.get('role') || '').trim();
+      const k = { code, group: v.get('group'), role, fresh: v.get('fresh') === 'on', ack: v.get('ack') === 'on' };
+      if (!/^[A-Za-z0-9_]{2,20}$/.test(code)) return setup('Enter a participant code of 2 to 20 letters, numbers or underscores.', k);
+      if (!PLANS[group]) return setup('Choose the group from the order sheet.', k);
+      if (!role) return setup("Enter the participant's role.", k);
+      if (!k.fresh || !k.ack) return setup('Both boxes must be ticked before the test starts.', k);
+      S = { kit: DATA.version, participant: code, group, role, fresh: true, created_at: iso(now()), phase: 'intro', block: 0, idx: 0, records: [], cur: null, survey: null, user_agent: navigator.userAgent };
+      persist(); render();
+    };
+  }
+
+  function intro() {
+    prog.textContent = `${S.participant} · group ${S.group}`;
+    const p = plan();
+    app.innerHTML = `<section class="card narrow">
+      <div class="eyebrow">Before you start</div>
+      <h1>You will judge 10 entries for the OceanX Education Impact Challenge</h1>
+      <p>Each entry is a short concept that a team submitted. For each entry, you will do three things.</p>
+      <ol class="steps"><li>Read the entry.</li><li>Give six scores from 1 to 10, one for each OceanX criterion.</li><li>Write a reason for your scores and feedback for the team.</li></ol>
+      <p>The entries come in two blocks of five. In one block, you write the reason and feedback yourself. In the other block, an AI drafts them once you have scored. Edit the draft until it says what you mean. You may delete all of it.</p>
+      <p>Work at your normal pace, as a real judge would. Each entry is timed from when it opens until you save it. You will not see a clock.</p>
+      <p><strong>Your first block:</strong> ${p[0].cond === 'draft' ? 'an AI drafts the reason and feedback after you score.' : 'you write the reason and feedback yourself.'}</p>
+      <div class="row"><button class="btn" id="go">Start block 1</button></div></section>`;
+    document.getElementById('go').onclick = () => { S.phase = 'block'; S.block = 0; S.idx = 0; S.cur = null; persist(); render(); };
+  }
+
+  function block(err) {
+    const c = current();
+    if (!S.cur || S.cur.entry !== c.entry) { S.cur = { entry: c.entry, start: now(), ratedAt: null, scores: {}, first: null, reason: '', feedback: '', drafted: false, reloads: 0 }; persist(); }
+    const pos = S.block * 5 + S.idx + 1, isDraft = c.cond === 'draft', open = allRated();
+    prog.textContent = `${S.participant} · entry ${pos} of 10`;
+    const note = isDraft
+      ? (open ? '<p class="draft-note">AI draft. The AI wrote it before your scores, from the entry alone. Change anything you disagree with.</p>' : '<p class="wait-note">The AI draft appears after you give all six scores.</p>')
+      : (open ? '' : '<p class="wait-note">The text boxes open after you give all six scores.</p>');
+    app.innerHTML = `<div class="grid">
+      <section class="card sticky"><div class="eyebrow">Block ${S.block + 1} · entry ${S.idx + 1} of 5</div>
+        <h2>Entry ${esc(c.entry)}</h2><p class="entry-text">${esc(DATA.entries[c.entry])}</p>
+        <p class="muted">Judge the entry as written.</p></section>
+      <section class="card"><form id="f" novalidate>
+        <div class="eyebrow">Step 1 · your scores</div>
+        ${DATA.criteria.map(k => `<fieldset><legend>${esc(k.label)}</legend><div class="opts">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<label><input type="radio" name="${k.id}" value="${n}" ${S.cur.scores[k.id] === n ? 'checked' : ''} aria-label="${esc(k.label)} ${n}"><span>${n}</span></label>`).join('')}</div></fieldset>`).join('')}
+        <div class="eyebrow" style="margin-top:16px">Step 2 · ${isDraft ? 'check and edit the AI draft' : 'write your reason and feedback'}</div>
+        ${note}
+        <label class="fl">Why did you score it this way?<textarea name="reason" ${open ? '' : 'disabled'}>${esc(S.cur.reason)}</textarea></label>
+        <label class="fl">Feedback to the team<textarea name="feedback" ${open ? '' : 'disabled'}>${esc(S.cur.feedback)}</textarea></label>
+        ${err ? `<p class="error">${esc(err)}</p>` : ''}
+        <div class="row"><button class="btn" type="submit">Save and continue →</button></div>
+      </form></section></div>`;
+    const f = document.getElementById('f');
+    f.addEventListener('change', e => {
+      if (e.target.type !== 'radio') return;
+      S.cur.scores[e.target.name] = Number(e.target.value);
+      if (allRated() && !S.cur.ratedAt) {
+        S.cur.ratedAt = now();
+        S.cur.first = Object.assign({}, S.cur.scores); // the scores before any draft appears
+        if (isDraft && !S.cur.drafted) { S.cur.reason = DATA.drafts[c.entry].reason; S.cur.feedback = DATA.drafts[c.entry].feedback; S.cur.drafted = true; }
+        persist(); block();
+        const t = app.querySelector('textarea[name=reason]'); if (t) t.focus();
+        return;
+      }
+      persist();
+    });
+    f.addEventListener('input', e => { if (e.target.tagName === 'TEXTAREA') { S.cur[e.target.name] = e.target.value; persist(); } });
+    f.addEventListener('submit', e => {
+      e.preventDefault();
+      if (!allRated()) return block('Give all six scores first.');
+      if (!S.cur.reason.trim() || !S.cur.feedback.trim()) return block('Write a reason and feedback before you save.');
+      const t = now(), d = DATA.drafts[c.entry], first = S.cur.first || S.cur.scores;
+      S.records.push({
+        participant: S.participant, group: S.group, role: S.role, block: S.block + 1, position: pos, set: c.set, condition: c.cond, entry: c.entry,
+        started_at: iso(S.cur.start), rated_at: iso(S.cur.ratedAt), saved_at: iso(t),
+        total_s: secs(t - S.cur.start), score_s: secs(S.cur.ratedAt - S.cur.start), write_s: secs(t - S.cur.ratedAt),
+        scores: Object.assign({}, S.cur.scores), first_scores: Object.assign({}, first),
+        scores_changed: DATA.criteria.some(k => first[k.id] !== S.cur.scores[k.id]),
+        reason: S.cur.reason.trim(), feedback: S.cur.feedback.trim(),
+        reason_changed: isDraft ? changed(d.reason, S.cur.reason) : null, feedback_changed: isDraft ? changed(d.feedback, S.cur.feedback) : null,
+        reloads: S.cur.reloads || 0,
+      });
+      S.cur = null;
+      if (S.idx < 4) S.idx++; else S.phase = S.block === 0 ? 'pause' : 'survey';
+      persist(); render(); window.scrollTo(0, 0);
+    });
+  }
+
+  function pause() {
+    const p = plan();
+    prog.textContent = `${S.participant} · block 1 done`;
+    app.innerHTML = `<section class="card narrow"><div class="eyebrow">Block 1 is done</div><h1>Take a short break if you need one</h1>
+      <p>The next five entries work differently.</p>
+      <p><strong>Block 2:</strong> ${p[1].cond === 'draft' ? 'an AI drafts the reason and feedback after you score. Edit the draft until it says what you mean.' : 'you write the reason and feedback yourself.'}</p>
+      <div class="row"><button class="btn" id="go">Start block 2</button></div></section>`;
+    document.getElementById('go').onclick = () => { S.phase = 'block'; S.block = 1; S.idx = 0; S.cur = null; persist(); render(); };
+  }
+
+  function survey(err) {
+    prog.textContent = `${S.participant} · last questions`;
+    app.innerHTML = `<section class="card narrow"><div class="eyebrow">Three last questions</div><form id="f" novalidate>
+      <fieldset><legend>How useful were the AI drafts? 1 means not useful and 5 means very useful.</legend><div class="pills">${[1, 2, 3, 4, 5].map(n => `<label class="pill"><input type="radio" name="useful" value="${n}"><span>${n}</span></label>`).join('')}</div></fieldset>
+      <fieldset><legend>Did you keep any draft text that you did not fully agree with?</legend><div class="pills">${['Yes', 'No', 'Not sure'].map(v => `<label class="pill"><input type="radio" name="kept" value="${v}"><span>${v}</span></label>`).join('')}</div></fieldset>
+      <label class="fl">Anything else you noticed? This is optional.<textarea name="comment"></textarea></label>
+      ${err ? `<p class="error">${esc(err)}</p>` : ''}
+      <div class="row"><button class="btn" type="submit">Finish</button></div></form></section>`;
+    document.getElementById('f').onsubmit = e => {
+      e.preventDefault();
+      const v = new FormData(e.target);
+      if (!v.get('useful') || !v.get('kept')) return survey('Answer the first two questions.');
+      S.survey = { useful: Number(v.get('useful')), kept_disagreed_text: v.get('kept'), comment: String(v.get('comment') || '').trim() };
+      S.phase = 'done'; S.finished_at = iso(now()); persist(); render();
+    };
+  }
+
+  function exportJson() {
+    const out = { kit: S.kit, participant: S.participant, group: S.group, role: S.role, fresh: S.fresh, created_at: S.created_at, finished_at: S.finished_at, user_agent: S.user_agent, survey: S.survey, records: S.records };
+    return JSON.stringify(out, null, 2);
+  }
+  function exportCsv() {
+    const cols = ['participant', 'group', 'role', 'block', 'position', 'set', 'condition', 'entry', 'total_s', 'score_s', 'write_s', ...DATA.criteria.map(k => k.id), 'scores_changed', ...DATA.criteria.map(k => 'first_' + k.id), 'reason_changed', 'feedback_changed', 'reason', 'feedback', 'started_at', 'rated_at', 'saved_at', 'reloads'];
+    const cell = v => { let s = v == null ? '' : String(v); if (/^[=+\-@]/.test(s)) s = "'" + s; return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const rows = S.records.map(r => cols.map(c => cell(c in r ? r[c] : c.startsWith('first_') ? r.first_scores[c.slice(6)] : r.scores[c])).join(','));
+    return '﻿' + [cols.join(',')].concat(rows).join('\r\n');
+  }
+  function download(name, text, type) {
+    const url = URL.createObjectURL(new Blob([text], { type }));
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  function done() {
+    prog.textContent = `${S.participant} · finished`;
+    const m = cond => { const r = S.records.filter(x => x.condition === cond); return r.length ? (r.reduce((a, x) => a + x.total_s, 0) / r.length).toFixed(0) : '-'; };
+    app.innerHTML = `<section class="card narrow"><div class="eyebrow">Finished · thank you</div><h1>Download the results now</h1>
+      <p>Save both files into the kit's <strong>results</strong> folder. The deck reads them from there.</p>
+      <table><tr><th>How the reason and feedback were written</th><th>Average seconds per entry</th></tr>
+        <tr><td>Written from scratch</td><td>${m('scratch')}</td></tr><tr><td>Edited from an AI draft</td><td>${m('draft')}</td></tr></table>
+      <div class="row"><button class="btn" id="j">Download results (JSON)</button><button class="btn secondary" id="c">Download table (CSV)</button></div>
+      <hr style="margin:22px 0;border:0;border-top:1px solid var(--line)">
+      <label class="check"><input type="checkbox" id="saved"><span>I have saved both files.</span></label>
+      <div class="row"><button class="btn secondary" id="new" disabled>Start a new participant</button></div></section>`;
+    document.getElementById('j').onclick = () => download(`${S.participant}_test2.json`, exportJson(), 'application/json');
+    document.getElementById('c').onclick = () => download(`${S.participant}_test2.csv`, exportCsv(), 'text/csv');
+    const saved = document.getElementById('saved'), nb = document.getElementById('new');
+    saved.onchange = () => { nb.disabled = !saved.checked; };
+    nb.onclick = () => { localStorage.removeItem(KEY); S = null; render(); };
+  }
+
+  if (S && S.phase === 'block' && S.cur) { S.cur.reloads = (S.cur.reloads || 0) + 1; persist(); }
+  render();
+})();
+</script>
+</body>
+</html>
