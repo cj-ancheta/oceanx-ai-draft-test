@@ -57,6 +57,19 @@
   .ok-t { color:#0b5f4c; } .bad-t { color:#a3401f; }
   .modal { position:fixed; inset:0; background:rgba(12,39,70,.45); display:flex; align-items:center; justify-content:center; }
   .modal .card { width:min(520px, 92vw); }
+  .part { border-top:1px solid var(--line); padding-top:6px; margin-top:14px; }
+  .part h3 { margin-top:6px; }
+  .member { display:flex; gap:6px; margin:4px 0; }
+  .member input { flex:1; }
+  .btn.small { padding:5px 10px; font-weight:600; }
+  input[type=file] { font:inherit; font-size:13.5px; margin:4px 0; }
+  .fstat { font-size:13.5px; margin:2px 0 4px; }
+  .pkg { display:grid; grid-template-columns:120px 1fr; gap:4px 10px; font-size:14px; }
+  .pkg b { color:var(--navy); }
+  .grid.form { grid-template-columns:minmax(0, 1fr) 400px; }
+  .grid.form > section:last-child { position:sticky; top:12px; }
+  #checks ul { list-style:none; padding-left:2px; margin:4px 0; }
+  h4 { font:700 12.5px Arial, sans-serif; color:var(--slate); text-transform:uppercase; letter-spacing:.05em; margin:12px 0 2px; }
   @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -131,7 +144,15 @@ const ENTRIES = [
     ai:sc([9,8,7,7,9,8]), reason:'Clear, accurate science with a strong story and wide reach as a game. The audience and the length of play are not defined.',
     priya:sc([9,9,6,7,10,8]), sam:sc([8,8,6,7,5,7]) },
 ];
-const KEY = 'oceanx-ranking-demo-v1';
+// The four tracks of the 2026 Education Impact Challenge, as published by OceanX.
+const TRACKS = ['Living Light: The Language of Bioluminescence', 'The Invisible Ocean: Microbial Worlds That Run the Planet',
+  'Extreme Oceans: Life at the Edge', 'Deep Sea Explorers: Finding Life in the Unknown'];
+// Fictional entry packages: [track, video length in seconds, deck slides, team members].
+const PACKAGE = { A01:[1,112,8,3], A02:[1,98,10,4], A03:[1,120,7,2], A04:[1,105,9,5], A05:[2,117,10,3],
+  A06:[2,88,6,4], A07:[4,101,8,2], A08:[2,119,9,3], A09:[3,94,7,4], A10:[3,110,10,5] };
+ENTRIES.forEach(e => { const [track, video, slides, members] = PACKAGE[e.id]; Object.assign(e, { track, video, slides, members }); });
+const fmt = s => `${Math.floor(s / 60)} min ${String(Math.round(s % 60)).padStart(2, '0')} s`;
+const KEY = 'oceanx-ranking-demo-v2';
 const avg = o => CRIT.reduce((t, [k]) => t + o[k], 0) / CRIT.length;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const now = () => new Date().toLocaleString('en-SG', { dateStyle:'medium', timeStyle:'short' });
@@ -140,9 +161,14 @@ function fresh() {
   const scores = {};
   ENTRIES.forEach(e => { scores[e.id] = { priya:e.priya, sam:e.sam }; });
   return { view:'judge', sel:null, showAll:false, order:aiOrder(), scores, draft:{}, decisions:{}, extra:[],
-    log:[{ when:'Round setup', who:'AI (prepared example)', what:'Scored and ranked all 10 entries on the six criteria.' }], wiz:{ who:'', what:'', when:'', impact:'', text:'' } };
+    log:[{ when:'Round setup', who:'AI (prepared example)', what:'Scored and ranked all 10 entries on the six criteria.' }], wiz:blankWiz() };
+}
+function blankWiz() {
+  return { team:'', members:['', ''], adult:false, track:'', who:'', what:'', when:'', impact:'', text:'',
+    video:'', videoSecs:null, videoFile:'', videoErr:'', deck:'', deckSlides:null, deckErr:'', deckConfirm:false, links:'' };
 }
 let S; try { S = JSON.parse(localStorage.getItem(KEY)) || fresh(); } catch (e) { S = fresh(); }
+S.wiz = Object.assign(blankWiz(), S.wiz || {});
 const save = () => localStorage.setItem(KEY, JSON.stringify(S));
 const byId = id => ENTRIES.find(e => e.id === id);
 const assignedToAlex = e => e.tags.includes(JUDGES.alex.field);
@@ -203,10 +229,10 @@ function judgeView() {
       <label class="muted"><input type="checkbox" id="all" ${S.showAll ? 'checked' : ''}> Show all entries</label>
       ${list.map(e => { const mine = S.scores[e.id] && S.scores[e.id].alex; return `<button class="entry ${e.id === S.sel ? 'sel' : ''}" data-id="${e.id}">
         <span class="rank">${pos(e.id)}</span><span style="flex:1"><span class="ai">AI ${avg(e.ai).toFixed(1)}</span><span class="t">${esc(e.title)}</span><br>
-        <span class="muted">${esc(e.team)} · ${e.id}</span><br>
+        <span class="muted">${esc(e.team)} · ${e.id} · Track ${e.track}</span><br>
         ${assignedToAlex(e) ? `<span class="badge">Matched: ${esc(JUDGES.alex.field)}</span>` : '<span class="badge">Outside your field</span>'}
         ${!e.hl.user ? '<span class="badge warn">No target user</span>' : ''}${mine ? '<span class="badge ok">You scored this</span>' : ''}</span></button>`; }).join('')}
-      ${S.extra.map(x => `<div class="entry"><span class="rank">·</span><span><span class="t">${esc(x.title)}</span><br><span class="muted">New entry · AI score pending (no live AI in this prototype)</span></span></div>`).join('')}
+      ${S.extra.map(x => `<div class="entry"><span class="rank">·</span><span><span class="t">${esc(x.title)}</span><br><span class="muted">${esc(x.team || 'New team')} · Track ${esc(x.track || '?')} · video ${x.videoSecs ? fmt(x.videoSecs) : 'not checked'} · deck ${x.slides ? x.slides + ' slides' : 'of 10 slides or fewer'}</span><br><span class="muted">New entry · AI score pending (no live AI in this prototype)</span></span></div>`).join('')}
     </section>
     <section class="card" id="rec">${S.sel ? record(byId(S.sel)) : ''}</section></div>`;
   document.getElementById('all').onchange = ev => { S.showAll = ev.target.checked; render(); };
@@ -220,6 +246,11 @@ function record(e) {
   return `<div class="eyebrow">One record per entry · ${e.id} · rank ${S.order.indexOf(e.id) + 1} of ${S.order.length}</div>
     <h2>${esc(e.title)}</h2><div class="muted">${esc(e.team)} · tags: ${e.tags.map(esc).join(', ')}</div>
     <h3>The entry, with key terms highlighted</h3><div class="stmt">${highlight(e)}</div>${chips(e)}
+    <h3>Entry package</h3><div class="pkg"><b>Track</b><span>Track ${e.track}: ${esc(TRACKS[e.track - 1])}</span>
+      <b>Team</b><span>${esc(e.team)}, ${e.members} members</span>
+      <b>Pitch video</b><span>${fmt(e.video)} long. This is a sample entry, so no real video is attached.</span>
+      <b>Slide deck</b><span>${e.slides} slides. This is a sample entry, so no real file is attached.</span></div>
+    <p class="muted">The AI scores only the written concept. Judges also watch the video and read the deck before they score.</p>
     <h3>AI scores and reason <span class="muted">(prepared example)</span></h3>
     <table>${CRIT.map(([k, l]) => `<tr><td style="width:38%">${l}</td><td style="width:45%"><div class="bar"><i style="width:${e.ai[k] * 10}%"></i></div></td><td><b>${e.ai[k]}</b>/10</td></tr>`).join('')}
       <tr><td><b>AI average</b></td><td></td><td><b>${avg(e.ai).toFixed(1)}</b></td></tr></table>
@@ -256,7 +287,7 @@ function panelView() {
     const s = S.scores[e.id] || {}, js = Object.keys(JUDGES).filter(j => s[j]);
     const raw = js.length ? js.reduce((t, j) => t + avg(s[j]), 0) / js.length : null;
     const nz = normAvg(e.id, st), fl = flagsFor(e.id, st), dec = S.decisions[e.id];
-    return `<tr><td><b>${i + 1}</b></td><td><b>${esc(e.title)}</b><br><span class="muted">${e.id} · ${esc(e.team)}</span></td>
+    return `<tr><td><b>${i + 1}</b></td><td><b>${esc(e.title)}</b><br><span class="muted">${e.id} · ${esc(e.team)} · Track ${e.track}</span></td>
       <td>${avg(e.ai).toFixed(1)}</td><td>${raw ? raw.toFixed(1) : '–'}<br><span class="muted">${js.length} judge${js.length === 1 ? '' : 's'}</span></td>
       <td>${nz === null ? '–' : (nz >= 0 ? '+' : '') + nz.toFixed(2)}</td>
       <td>${fl.length ? `<span class="flag">Discuss</span><br><span class="muted">${fl.map(esc).join('<br>')}</span>` : '<span class="muted">None</span>'}</td>
@@ -278,27 +309,137 @@ function panelView() {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'oceanx-judging-record.json'; a.click();
   };
 }
+// ---------- entry form (feature 2 and OceanX's application form) ----------
+const SOLUTION_WORDS = /\b(app|apps|AI|dashboard|platform|VR)\b/gi;
+const isUrl = s => /^https?:\/\/[^\s\/]+\.[^\s\/]{2,}(\/\S*)?$/i.test(String(s).trim());
+const template = w => `How might we help ${w.who || '[user]'} who ${w.what || '[pain point]'} ${w.when || '[when or where]'}, so that ${w.impact || '[outcome]'}?`;
+function entryChecks(w) {
+  const bad = w.text.match(SOLUTION_WORDS) || [];
+  const named = w.members.filter(m => m.trim()).length;
+  return [
+    ['Team and track', [
+      ['The team has a name.', !!w.team.trim()],
+      ['The team has 2 to 5 members, and every member is named.', named >= 2 && named <= 5 && named === w.members.length],
+      ['The team confirms that every member is 18 or older.', !!w.adult],
+      ['The team has chosen one track.', !!w.track]]],
+    ['Problem statement', [
+      ['The entrant has named the user.', !!w.who.trim()],
+      ['The entrant has stated the pain point.', !!w.what.trim()],
+      ['The entrant has said when or where it happens.', !!w.when.trim()],
+      ['The entrant has stated a measurable outcome.', !!w.impact.trim()],
+      ['The statement fits in 200 characters.', w.text.length > 0 && w.text.length <= 200],
+      ['The statement contains no solution words such as app, AI or dashboard.', w.text.length > 0 && !bad.length]]],
+    ['Pitch video', [
+      ['The video link is a web address.', isUrl(w.video)],
+      ['The video is 2 minutes or shorter.', w.videoSecs !== null && w.videoSecs <= 120]]],
+    ['Slide deck', [
+      ['The deck is attached.', !!w.deck],
+      ['The deck has 10 slides or fewer.', w.deckSlides !== null ? w.deckSlides <= 10 : (!!w.deck && !!w.deckConfirm)]]],
+  ];
+}
+function videoStatus(w) {
+  if (w.videoErr) return `<span class="bad-t">${esc(w.videoErr)}</span>`;
+  if (w.videoSecs === null) return 'No video checked yet.';
+  return `${esc(w.videoFile)} is ${fmt(w.videoSecs)} long.` + (w.videoSecs > 120 ? ' <span class="bad-t">This is longer than 2 minutes.</span>' : '');
+}
+function deckStatus(w) {
+  if (!w.deck) return w.deckErr ? `<span class="bad-t">${esc(w.deckErr)}</span>` : 'No deck attached yet.';
+  if (w.deckSlides !== null) return `${esc(w.deck)} has ${w.deckSlides} slides.` + (w.deckSlides > 10 ? ' <span class="bad-t">This is more than 10 slides.</span>' : '');
+  return `${esc(w.deck)} is attached. ${esc(w.deckErr)}`;
+}
 function entrantView() {
-  const w = S.wiz, bad = (w.text.match(/\b(app|apps|AI|dashboard|platform|VR)\b/gi) || []);
-  const checks = [['Names the user', !!w.who.trim()], ['States the pain point', !!w.what.trim()], ['Says when or where it happens', !!w.when.trim()], ['States a measurable outcome', !!w.impact.trim()],
-    ['Fits in 200 characters', w.text.length > 0 && w.text.length <= 200], ['No solution words such as app, AI or dashboard', w.text.length > 0 && !bad.length]];
-  const ok = checks.every(c => c[1]);
-  app.innerHTML = `<div class="grid"><section class="card"><div class="eyebrow">Entrant view · problem statement check</div><h2>Answer four questions first</h2>
-      ${[['who','Who is the user?','For example: secondary school students'],['what','What is the pain point or gap?','For example: they cannot picture how deep-sea animals use light'],['when','When or where does it happen?','For example: during biology lessons on ocean ecosystems'],['impact','What measurable outcome do you want?','For example: students can explain two ways animals use light']]
-        .map(([k, l, ph]) => `<label class="muted">${l}<input type="text" data-w="${k}" value="${esc(w[k])}" placeholder="${esc(ph)}"></label><div style="height:8px"></div>`).join('')}
-      <button class="btn ghost" id="tpl">Fill a template draft</button></section>
-    <section class="card"><h2>Your problem statement</h2><textarea data-w="text" maxlength="260" placeholder="How might we...">${esc(w.text)}</textarea>
-      <div class="muted">${w.text.length} of 200 characters</div>
-      <h3>Checks</h3><ul class="steps">${checks.map(([l, v]) => `<li class="${v ? 'ok-t' : 'bad-t'}">${v ? '✓' : '✗'} ${l}</li>`).join('')}</ul>
-      ${bad.length ? `<p class="bad-t">Solution words found: ${[...new Set(bad.map(b => b.toLowerCase()))].map(esc).join(', ')}. Describe the problem, not the tool.</p>` : ''}
-      <div class="row"><button class="btn" id="submit" ${ok ? '' : 'disabled'}>Submit the entry</button></div></section></div>`;
-  app.querySelectorAll('[data-w]').forEach(i => i.oninput = () => { S.wiz[i.dataset.w] = i.value; save(); const p = i.selectionStart, k = i.dataset.w; entrantView(); const el = app.querySelector(`[data-w="${k}"]`); el.focus(); el.setSelectionRange(p, p); });
-  document.getElementById('tpl').onclick = () => { S.wiz.text = `How might we help ${w.who || '[user]'} who ${w.what || '[pain point]'} ${w.when || '[when or where]'}, so that ${w.impact || '[outcome]'}?`; render(); };
-  document.getElementById('submit').onclick = () => {
-    S.extra.push({ title:w.text.slice(0, 60) + (w.text.length > 60 ? '…' : '') });
-    S.log.push({ when:now(), who:'Entrant', what:'Submitted a problem statement that passed all six checks.' });
-    S.wiz = { who:'', what:'', when:'', impact:'', text:'' }; S.view = 'judge'; render();
+  const w = S.wiz;
+  const q = (k, l, ph) => `<label class="muted">${l}<input type="text" data-w="${k}" value="${esc(w[k])}" placeholder="${esc(ph)}"></label><div style="height:6px"></div>`;
+  app.innerHTML = `<div class="grid form"><section class="card"><div class="eyebrow">Entrant view · Education Impact Challenge entry form</div>
+      <h2>Submit an entry in five parts</h2>
+      <p class="muted">The form asks for what OceanX's application form asks for. Files stay on this computer. The prototype keeps only each file's name, length and slide count.</p>
+      <button class="btn ghost" id="sample">Fill a sample entry</button>
+      <div class="part"><h3>1. Team</h3>${q('team', 'Team name', 'For example: Glow Lab')}
+        <div class="muted">Members, from 2 to 5 people. The first member is the Team Lead, who submits the entry.</div>
+        ${w.members.map((m, i) => `<div class="member"><input type="text" data-m="${i}" value="${esc(m)}" placeholder="Member ${i + 1}${i === 0 ? ' (Team Lead)' : ''}"><button class="btn ghost small" data-rm="${i}" ${w.members.length <= 2 ? 'disabled' : ''}>Remove</button></div>`).join('')}
+        <button class="btn ghost small" id="addm" ${w.members.length >= 5 ? 'disabled' : ''}>Add a member</button>
+        <div><label class="muted"><input type="checkbox" data-w="adult" ${w.adult ? 'checked' : ''}> Every member is 18 or older.</label></div></div>
+      <div class="part"><h3>2. Track</h3><select data-w="track"><option value="">Choose a track</option>
+        ${TRACKS.map((t, i) => `<option value="${i + 1}" ${String(w.track) === String(i + 1) ? 'selected' : ''}>Track ${i + 1}: ${esc(t)}</option>`).join('')}</select></div>
+      <div class="part"><h3>3. Problem statement</h3><p class="muted">Answer four questions first.</p>
+        ${q('who', 'Who is the user?', 'For example: secondary school students')}${q('what', 'What is the pain point or gap?', 'For example: they cannot picture how deep-sea animals use light')}
+        ${q('when', 'When or where does it happen?', 'For example: during biology lessons on ocean ecosystems')}${q('impact', 'What measurable outcome do you want?', 'For example: students can explain two ways animals use light')}
+        <button class="btn ghost small" id="tpl">Fill a template draft</button>
+        <textarea data-w="text" maxlength="260" placeholder="How might we..." style="margin-top:8px">${esc(w.text)}</textarea>
+        <div class="muted" id="count">${w.text.length} of 200 characters</div></div>
+      <div class="part"><h3>4. Pitch video</h3>${q('video', 'Link to the pitch video', 'https://')}
+        <label class="muted">Check the video's length before you share the link. The limit is 2 minutes.<br><input type="file" id="vfile" accept="video/*"></label>
+        <div class="fstat" id="vstat">${videoStatus(w)}</div></div>
+      <div class="part"><h3>5. Slide deck</h3>
+        <label class="muted">Attach the deck as a PowerPoint (.pptx) or PDF file. The limit is 10 slides.<br><input type="file" id="dfile" accept=".pptx,.pdf"></label>
+        <div class="fstat" id="dstat">${deckStatus(w)}</div>
+        <label class="muted" id="dconfirm" style="display:${w.deck && w.deckSlides === null ? 'block' : 'none'}"><input type="checkbox" data-w="deckConfirm" ${w.deckConfirm ? 'checked' : ''}> I confirm that the deck has 10 slides or fewer.</label>
+        <div style="height:8px"></div>${q('links', 'Optional links to a portfolio, CV or work samples', 'https://')}</div></section>
+    <section class="card"><h2>Checks before submission</h2><div id="checks"></div>
+      <div class="row"><button class="btn" id="submit">Submit the entry</button></div></section></div>`;
+  app.querySelectorAll('[data-w]').forEach(el => {
+    const ev = el.type === 'checkbox' || el.tagName === 'SELECT' ? 'change' : 'input';
+    el.addEventListener(ev, () => { S.wiz[el.dataset.w] = el.type === 'checkbox' ? el.checked : el.value; refreshEntry(); });
+  });
+  app.querySelectorAll('[data-m]').forEach(el => el.addEventListener('input', () => { S.wiz.members[+el.dataset.m] = el.value; refreshEntry(); }));
+  app.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { S.wiz.members.splice(+b.dataset.rm, 1); render(); });
+  document.getElementById('addm').onclick = () => { if (S.wiz.members.length < 5) { S.wiz.members.push(''); render(); } };
+  document.getElementById('tpl').onclick = () => { S.wiz.text = template(S.wiz); render(); };
+  document.getElementById('sample').onclick = () => {
+    S.wiz = Object.assign(blankWiz(), { team:'Glow Lab', members:['Mei Tan', 'Arjun Rao', 'Sofia Cruz'], adult:true, track:'1',
+      who:'secondary school students', what:'cannot picture how deep-sea animals use light', when:'during biology lessons on ocean ecosystems',
+      impact:'students can explain two ways animals use light', video:'https://example.org/glow-lab-pitch',
+      videoSecs:105, videoFile:'sample-pitch.mp4 (sample)', deck:'sample-deck.pptx (sample)', deckSlides:8 });
+    S.wiz.text = template(S.wiz); render();
   };
+  document.getElementById('vfile').onchange = ev => { const f = ev.target.files[0]; if (f) readVideo(f); };
+  document.getElementById('dfile').onchange = ev => { const f = ev.target.files[0]; if (f) readDeck(f); };
+  document.getElementById('submit').onclick = () => {
+    const w2 = S.wiz, n = entryChecks(w2).reduce((t, g) => t + g[1].length, 0);
+    S.extra.push({ title:w2.text.slice(0, 60) + (w2.text.length > 60 ? '…' : ''), team:w2.team, track:w2.track, videoSecs:w2.videoSecs, slides:w2.deckSlides });
+    S.log.push({ when:now(), who:`Entrant (${w2.team})`, what:`Submitted an entry to track ${w2.track} that passed all ${n} checks. The video is ${fmt(w2.videoSecs)} long, and the deck has ${w2.deckSlides !== null ? w2.deckSlides + ' slides' : '10 slides or fewer, as the team confirmed'}.` });
+    S.wiz = blankWiz(); S.view = 'judge'; render();
+  };
+  refreshEntry();
+}
+function refreshEntry() {
+  const w = S.wiz, groups = entryChecks(w), ok = groups.every(g => g[1].every(c => c[1]));
+  const bad = w.text.match(SOLUTION_WORDS) || [];
+  document.getElementById('checks').innerHTML = groups.map(([h, cs]) => `<h4>${h}</h4><ul class="steps">${cs.map(([l, v]) => `<li class="${v ? 'ok-t' : 'bad-t'}">${v ? '✓' : '✗'} ${l}</li>`).join('')}</ul>`).join('')
+    + (bad.length ? `<p class="bad-t">Solution words found: ${[...new Set(bad.map(b => b.toLowerCase()))].map(esc).join(', ')}. Describe the problem, not the tool.</p>` : '');
+  document.getElementById('count').textContent = `${w.text.length} of 200 characters`;
+  document.getElementById('vstat').innerHTML = videoStatus(w);
+  document.getElementById('dstat').innerHTML = deckStatus(w);
+  document.getElementById('dconfirm').style.display = w.deck && w.deckSlides === null ? 'block' : 'none';
+  document.getElementById('submit').disabled = !ok;
+  save();
+}
+function readVideo(file) {
+  Object.assign(S.wiz, { videoFile:file.name, videoSecs:null, videoErr:'' });
+  const v = document.createElement('video'), url = URL.createObjectURL(file);
+  v.preload = 'metadata';
+  v.onloadedmetadata = () => { URL.revokeObjectURL(url); if (isFinite(v.duration)) S.wiz.videoSecs = Math.round(v.duration * 10) / 10; else S.wiz.videoErr = 'The browser could not read the length of this file.'; refreshEntry(); };
+  v.onerror = () => { URL.revokeObjectURL(url); S.wiz.videoErr = 'The browser could not open this file as a video.'; refreshEntry(); };
+  v.src = url;
+}
+async function readDeck(file) {
+  Object.assign(S.wiz, { deck:'', deckSlides:null, deckErr:'', deckConfirm:false });
+  if (!/\.(pptx|pdf)$/i.test(file.name)) { S.wiz.deckErr = 'The deck must be a PowerPoint (.pptx) or PDF file.'; refreshEntry(); return; }
+  try {
+    const buf = new Uint8Array(await file.arrayBuffer());
+    let s = '';
+    for (let i = 0; i < buf.length; i += 32768) s += String.fromCharCode.apply(null, buf.subarray(i, i + 32768));
+    let n = 0;
+    if (/\.pptx$/i.test(file.name)) n = new Set([...s.matchAll(/ppt\/slides\/slide(\d+)\.xml/g)].map(m => m[1])).size;
+    else {
+      const pages = (s.match(/\/Type\s*\/Page(?![a-zA-Z])/g) || []).length;
+      const counts = [...s.matchAll(/\/Type\s*\/Pages\b[^>]*?\/Count\s+(\d+)/g), ...s.matchAll(/\/Count\s+(\d+)[^>]*?\/Type\s*\/Pages\b/g)].map(m => +m[1]);
+      n = Math.max(pages, ...counts, 0);
+    }
+    S.wiz.deck = file.name;
+    if (n > 0) S.wiz.deckSlides = n; else S.wiz.deckErr = 'The prototype could not count its slides.';
+  } catch (e) { S.wiz.deckErr = 'The prototype could not read this file.'; }
+  refreshEntry();
 }
 function logView() {
   app.innerHTML = `<section class="card"><div class="eyebrow">Governance</div><h2>Every change is logged with a reason</h2>
